@@ -21,10 +21,37 @@
 
 <form name="Login" method="post" action="" >
 	<input type="submit" name="logout" value="Logout"><br><br>
-	<input type="submit" name="all" value="View All Data"> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+	<input type="submit" name="all" value="View All Data"> <br>
+	
+	<input type="checkbox" name="sortType" value="getAgeRange">
 	View Age range from: <input type="text" name="age1" size=2> to: <input type="text" name="age2" size=2>
-	<input type="submit" name="ageRange" value="Go">
-	<br> <br> <br>
+	<input type="submit" name="ageRange" value="Go"><br>
+	
+	<input type="checkbox" name="sortType" value="sortByUniversity">
+	Sort by University:
+	<select name="sortedUniversity">
+		<option value="Ateneo De Manila University">Ateneo De Manila University</option>
+		<option value="De La Salle University">De La Salle University</option>
+		<option value="Lyceum of the Philippines University">Lyceum of the Philippines University</option>
+		<option value="Mapua Institute of Technology">Mapua Institute of Technology</option>
+		<option value="STI">STI</option>
+		<option value="University of Santo Tomas">University of Santo Tomas</option>
+		<option value="University of the Philippines">University of the Philippines</option>
+	</select>
+	<input type="submit" name="univSort" value="Go"> <br>
+	
+	<input type="checkbox" name="sortType" value="computeTotalStudents">
+	Compute total students in university:
+	<select name="computedUniversity">
+		<option value="Ateneo De Manila University">Ateneo De Manila University</option>
+		<option value="De La Salle University">De La Salle University</option>
+		<option value="Lyceum of the Philippines University">Lyceum of the Philippines University</option>
+		<option value="Mapua Institute of Technology">Mapua Institute of Technology</option>
+		<option value="STI">STI</option>
+		<option value="University of Santo Tomas">University of Santo Tomas</option>
+		<option value="University of the Philippines">University of the Philippines</option>
+	</select>
+	<input type="submit" name="univCompute" value="Go"><br>
 </form>
 <?php
 	$mode=1;
@@ -37,8 +64,13 @@
 	else if (isset($_POST['ageRange'])) {
 		$mode=2;
 	}
+	else if (isset($_POST['univSort'])) {
+		$mode=3;
+	}
+	else if (isset($_POST['univCompute'])) {
+		$mode=4;
+	}
 ?>
-
 <table id="studentData" class="display" cellspacing="0" width="100%">
     <thead>
         <tr>
@@ -55,8 +87,19 @@
 		if($mode==1)
 			$sql = "SELECT studentId, firstName, surname, birthday, university FROM student";
 		else if ($mode==2) {
+			$sql = "SELECT studentId, firstName, surname, birthday, university FROM student WHERE FLOOR(DATEDIFF(CURDATE(), birthday)/365.24) >= {$_POST['age1']} AND FLOOR(DATEDIFF(CURDATE(), birthday)/365.24) <= {$_POST['age2']}";
+		}
+		else if ($mode==3) {
+			$sql = "SELECT studentId, firstName, surname, birthday, university FROM student WHERE university='{$_POST['sortedUniversity']}'";
+		}
+		else if ($mode==4) {
+			$sql = "SELECT studentId, firstName, surname, birthday, university FROM student WHERE university='{$_POST['computedUniversity']}'";
 			
-			$sql = "SELECT studentId, firstName, surname, birthday, university FROM student WHERE FLOOR(DATEDIFF(CURDATE(), birthday)/365) >= {$_POST['age1']} AND FLOOR(DATEDIFF(CURDATE(), birthday)/365) <= {$_POST['age2']}";
+			$sqlCount = "SELECT COUNT(university) as 'totalStudents' FROM student WHERE university='{$_POST['computedUniversity']}'";
+			$resultCount = $conn->query($sqlCount);
+			$rowCount = $resultCount->fetch_assoc();
+			$totalStudents = $rowCount['totalStudents'];
+			echo "Total Students: ".$totalStudents;
 		}
 		$result = $conn->query($sql);
 		if ($result->num_rows > 0) {
